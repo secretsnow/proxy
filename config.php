@@ -13,32 +13,32 @@
 	 */
 	"access_codes" => array(),
 
-	/* Free access
+	/* No authentication for websites
 	 *
-	 * Defines which websites can be visited without an access code.
+	 * An array with hostnames of the websites that can be visited without an access code.
 	 */
-	"free_access" => array(),
+	"no_auth_websites" => array(),
 
-	/* No authentication required
+	/* No authentication for clients
 	 *
-	 * An array that contains IP addresses from where no access code is required.
+	 * An array with IP addresses from where no access code is required.
 	 */
-	"no_authentication" => array(),
+	"no_auth_clients" => array(),
 
 	/* Quick links
 	 *
 	 * An array with URL's for the Quick Links sections
-	 * Example: $quick_links = array("The Pirate Bay" => "http://thepiratebay.sx/");
+	 * Example: $quick_links = array("The Pirate Bay" => "http://thepiratebay.vg/");
 	 */
 	"quick_links" => array(
-		"The Pirate Bay" => "http://thepiratebay.se/"),
+		"The Pirate Bay" => "http://thepiratebay.vg/"),
 
 	/* Forwarding proxy
 	 *
 	 * Use this other proxy (Tor) to handle all requests.
-	 # Example: "forwarding_proxy" => "http://localhost:3128"
+	 # Example: "forwarding_proxy" => "socks://localhost:3128"
 	 */
-	#"forwarding_proxy" => "socks://localhost:9050",
+	"forwarding_proxy" => null,
 
 	/* Private browsing
 	 *
@@ -50,6 +50,8 @@
 		"www.facebook.com", "facebook.com"),
 
 	/* Access control
+	 *
+	 * Define which websites can or cannot be visited via this proxy.
 	 */
 	"whitelist" => array(),
 	"blacklist" => array()

@@ -1,15 +1,15 @@
 <?php
 	/* System stuff
 	 */
-	require("system.php");
 	require("config.php");
+	require("system.php");
 
 	if (substr($_CONFIG["proxy_hostname"], 0, 2) == "*.") {
-		$_CONFIG["proxy_hostname"] = substr($_CONFIG["proxy_hostname"], 2);
+		exit("Incorrect proxy_hostname set in config.php.");
 	}
 
 	session_name(SESSION_KEY);
-	session_set_cookie_params(0, "/", ".".$_CONFIG["proxy_hostname"]);
+	session_set_cookie_params(0, "/", ".".$_CONFIG["proxy_basename"]);
 	session_start();
 	unset($_COOKIE[SESSION_KEY]);
 
@@ -22,9 +22,9 @@
 		/* Start proxy
 		 */
 		if ($_SERVER["HTTPS"] == "on") {
-			$proxy = new proxys($_CONFIG["proxy_hostname"], $bootstrap->hostname, $_SERVER["SERVER_PORT"]);
+			$proxy = new proxys($_CONFIG, $bootstrap->hostname, $_SERVER["SERVER_PORT"]);
 		} else {
-			$proxy = new proxy($_CONFIG["proxy_hostname"], $bootstrap->hostname, $_SERVER["SERVER_PORT"]);
+			$proxy = new proxy($_CONFIG, $bootstrap->hostname, $_SERVER["SERVER_PORT"]);
 		}
 
 		/* Other proxy
@@ -61,23 +61,21 @@
 
 	/* Handle bootstrap or proxy result
 	 */
-	$output = new output($_CONFIG["proxy_hostname"], $_CONFIG["quick_links"]);
+	$output = new output($_CONFIG);
 	$message = null;
 	$status = null;
+
+	$page = ltrim($_SERVER["REQUEST_URI"], "/");
 
 	switch ($result) {
 		case CONNECTION_ERROR:
 			$message = "Connection error.";
 			break;
 		case NO_USER_INPUT:
-			$page = ltrim($_SERVER["REQUEST_URI"], "/");
-
 			if ($page == "") {
 				$output->show_url_form();
 			} else if (in_array($page, $proxy_pages)) {
 				$output->show_page($page);
-			} else if (in_array($page, array_keys($local_files))) {
-				$output->show_local_file($page, $local_files);
 			} else {
 				$output->http_error(404);
 			}
@@ -99,7 +97,7 @@
 			$status = 508;
 			break;
 		case LOCAL_FILE:
-			$output->show_local_file();
+			$output->show_local_file($page, $_CONFIG["local_files"]);
 			break;
 		case 403:
 			$output->http_error($result);

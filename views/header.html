@@ -70,6 +70,10 @@
 	}
 	/* Forms
 	 */
+	form a {
+		text-decoration:none;
+		color:inherit;
+	}
 	input.text {
 		margin:0 3px;
 		width:500px;
@@ -176,7 +180,9 @@
 			uri = "";
 		}
 
-		document.location = "{PROTOCOL}://" + hostname + ".{PROXY_HOSTNAME}/" + uri;
+		hostname = hostname.replace(/\./g, "{DOT_REPLACEMENT}");
+
+		document.location = "{PROTOCOL}://" + hostname + ".{PROXY_BASENAME}/" + uri;
 	}
 //-->
 </script>

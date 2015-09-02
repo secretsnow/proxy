@@ -1,5 +1,5 @@
 <?php
-	define("VERSION", "2.5");
+	define("VERSION", "3.0");
 
 	define("SESSION_KEY", "proxy_session_key");
 
@@ -11,13 +11,15 @@
 	define("LOOPBACK",           -6);
 	define("LOCAL_FILE",         -7);
 
-	define("MB", "1048576");
+	define("DOT_REPLACEMENT", "_");
 
 	$proxy_pages = array("disclaimer");
 
-	$local_files = array(
+	list($_CONFIG["proxy_prefix"], $_CONFIG["proxy_basename"]) = explode(".", $_CONFIG["proxy_hostname"], 2);
+
+	$_CONFIG["local_files"] = array(
 		"tunnel.png"  => "image/png",
-		"favicon.ico" => "image/x-ico",
+		"favicon.ico" => "image/x-icon",
 		"robots.txt"  => "text/plain");
 
 	/* Class autoloader

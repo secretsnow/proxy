@@ -6,6 +6,8 @@
 	 * http://www.banshee-php.org/
 	 */
 
+	define("MB", "1048576");
+
 	class HTTP {
 		protected $host = null;
 		protected $port = null;

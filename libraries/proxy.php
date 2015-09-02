@@ -5,6 +5,7 @@
 	 */
 
 	class proxy extends HTTP {
+		private $config = array();
 		private $proxy_hostname = null;
 		private $ignore_cookies = array();
 		private $headers_to_server = array("Accept", "Accept-Charset",
@@ -17,12 +18,12 @@
 
 		/* Constructor
 		 *
-		 * INPUT:  string proxy hostname, string host[, int port]
+		 * INPUT:  array configuration, string host[, int port]
 		 * OUTPUT: -
 		 * ERROR:  -
 		 */
-		public function __construct($proxy_hostname, $host, $port = null) {
-			$this->proxy_hostname = $proxy_hostname;
+		public function __construct($config, $host, $port = null) {
+			$this->config = $config;
 
 			parent::__construct($host, $port);
 		}
@@ -51,13 +52,16 @@
 
 			if (substr($url, 0, 2) == "//") {
 				list($host, $path) = explode("/", substr($url, 2), 2);
-				$new_url = sprintf("//%s.%s/%s", $host, $this->proxy_hostname, $path);
+				$host = str_replace(".", DOT_REPLACEMENT, $host);
+				$new_url = sprintf("//%s.%s/%s", $host, $this->config["proxy_basename"], $path);
 			} else if (substr($url, 0, 7) == "http://") {
 				list($host, $path) = explode("/", substr($url, 7), 2);
-				$new_url = sprintf("http://%s.%s/%s", $host, $this->proxy_hostname, $path);
+				$host = str_replace(".", DOT_REPLACEMENT, $host);
+				$new_url = sprintf("http://%s.%s/%s", $host, $this->config["proxy_basename"], $path);
 			} else if (substr($url, 0, 8) == "https://") {
 				list($host, $path) = explode("/", substr($url, 8), 2);
-				$new_url = sprintf("https://%s.%s/%s", $host, $this->proxy_hostname, $path);
+				$host = str_replace(".", DOT_REPLACEMENT, $host);
+				$new_url = sprintf("https://%s.%s/%s", $host, $this->config["proxy_basename"], $path);
 			} else {
 				$new_url = $url;
 			}
@@ -112,8 +116,12 @@
 		public function forward_request($path) {
 			/* Proxy self?
 			 */
-			if ($this->host == $this->proxy_hostname) {
-				return LOOPBACK;
+			$basename_len = strlen($this->config["proxy_basename"]);
+			$host_len = strlen($this->host);
+			if ($host_len >= $basename_len) {
+				if (substr($this->host, $host_len - $basename_len) == $this->config["proxy_basename"]) {
+					return LOOPBACK;
+				}
 			}
 
 			/* Forward headers to server

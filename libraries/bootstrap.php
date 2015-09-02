@@ -6,15 +6,17 @@
 
 	class bootstrap {
 		private $config = null;
+		private $hostname = null;
+		private $user_input = null;
 
 		/* Constructor
 		 *
-		 * INPUT:  array configration
+		 * INPUT:  array configuration
 		 * OUTPUT: -
 		 * ERROR:  -
 		 */
-		public function __construct($configuration) {
-			$this->config = $configuration;
+		public function __construct($config) {
+			$this->config = $config;
 		}
 
 		/* Magic method get
@@ -25,13 +27,19 @@
 		 */
 		public function __get($key) {
 			switch ($key) {
-				case "user_input": return $this->config["user_input"];
-				case "hostname": return $this->config["hostname"];
+				case "user_input": return $this->user_input;
+				case "hostname": return $this->hostname;
 			}
 
 			return null;
 		}
 
+		/* Check if hostname exists in list
+		 *
+		 * INPUT:  string hostname, array list
+		 * OUTPUT: boolean hostname exists in list
+		 * ERROR:  -
+		 */
 		private function hostname_in_list($hostname, $list) {
 			foreach ($list as $item) {
 				if ($item[0] == "*") {
@@ -63,55 +71,67 @@
 				}
 			}
 
+			/* Local files
+			 */
+			if (in_array(ltrim($_SERVER["REQUEST_URI"], "/"), array_keys($this->config["local_files"]))) {
+				return LOCAL_FILE;
+			}
+
 			/* User input
 			 */
-			$url = $_SERVER["HTTP_HOST"];
-			$url_len = strlen($url);
-			$proxy_len = strlen($this->config["proxy_hostname"]);
-			$host_len = $url_len - $proxy_len;
+			$http_host = $_SERVER["HTTP_HOST"];
+			$http_host_len = strlen($http_host);
+			$basename_len = strlen($this->config["proxy_basename"]);
 
-			if ($url_len < $proxy_len) {
+			if ($http_host_len < $basename_len) {
 				return INTERNAL_ERROR;
-			} else if (substr($url, $host_len) != $this->config["proxy_hostname"]) {
-				return INTERNAL_ERROR;
-			} else {
-				$this->config["hostname"] = rtrim(substr($url, 0, $host_len), ".");
 			}
+
+			if (($hostname_len = $http_host_len - $basename_len - 1) == -1) {
+				if ($http_host != $this->config["proxy_basename"]) {
+					return INTERNAL_ERROR;
+				}
+			} else if (substr($http_host, $hostname_len) != ".".$this->config["proxy_basename"]) {
+				return INTERNAL_ERROR;
+			}
+
+			$hostname = substr($http_host, 0, $hostname_len);
+			$this->hostname = str_replace(DOT_REPLACEMENT, ".", $hostname);
 
 			/* Authentication
 			 */
 			if (count($this->config["access_codes"]) > 0) {
-				if ($this->hostname_in_list($this->config["hostname"], $this->config["free_access"]) == false) {
+				if ($this->hostname_in_list($this->hostname, $this->config["no_auth_websites"]) == false) {
 					if (in_array($_SESSION["access_code"], $this->config["access_codes"])) {
 						// User already logged in
 						$_SERVER["REQUEST_METHOD"] = "GET";
 					} else if (in_array($_POST["access_code"], $this->config["access_codes"])) {
 						$_SESSION["access_code"] = $_POST["access_code"];
 						$_SERVER["REQUEST_METHOD"] = "GET";
-					} else if (in_array($_SERVER["REMOTE_ADDR"], $this->config["no_authentication"]) == false) {
+					} else if (in_array($_SERVER["REMOTE_ADDR"], $this->config["no_auth_clients"]) == false) {
 						return LOGIN_REQUIRED;
 					}
 				}
 			}
 
-			if ($host_len == 0) {
+			if (($http_host == $this->config["proxy_basename"]) || ($hostname == $this->config["proxy_prefix"])) {
 				return NO_USER_INPUT;
 			}
 
-			$this->config["user_input"] = $this->config["hostname"];
+			$this->user_input = $this->hostname;
 			if ($_SERVER["REQUEST_URI"] != "/") {
-				$this->config["user_input"] .= $_SERVER["REQUEST_URI"];
+				$this->user_input .= $_SERVER["REQUEST_URI"];
 			}
 
 			/* Access control
 			 */
 			if (count($this->config["whitelist"]) > 0) {
-				if ($this->hostname_in_list($this->config["hostname"], $this->config["whitelist"]) == false) {
+				if ($this->hostname_in_list($this->hostname, $this->config["whitelist"]) == false) {
 					return FORBIDDEN_HOSTNAME;
 				}
 			}
 
-			if ($this->hostname_in_list($this->config["hostname"], $this->config["blacklist"])) {
+			if ($this->hostname_in_list($this->hostname, $this->config["blacklist"])) {
 				return FORBIDDEN_HOSTNAME;
 			}
 

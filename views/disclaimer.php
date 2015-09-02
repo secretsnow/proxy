@@ -1,8 +1,8 @@
 <h2>Disclaimer</h2>
 
-<p>This service is provided as is, without warranty of any kind. Use of this service is entirely at your own risk. We cannot take responsibility for any direct or indirect damages resulting from the use of this service.</p>
+<p>This proxy service is provided as is, without warranty of any kind. Use of this service is entirely at your own risk. We cannot take responsibility for any direct or indirect damages resulting from the use of this proxy service.</p>
 
-<p>The service allows indirect browsing of external, third-party websites. We are not responsible for the content on any external websites that may be accessible through our service. A website viewed through our service is in no way owned by or associated with this website.</p>
+<p>The service allows indirect browsing of external, third-party websites. We are not responsible for the content on any external websites that may be accessible through our service. A website viewed through our service is in no way owned by or associated with this proxy service.</p>
 
 <p>The term "indirect browsing" refers to the server which you connect to. During "direct" browsing, you connect to the server which provides the resource you are requesting. During "indirect" browsing, you connect to our server. Our script downloads the requested resource and forwards it to you.</p>
 

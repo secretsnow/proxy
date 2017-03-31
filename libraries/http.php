@@ -6,9 +6,9 @@
 	 * http://www.banshee-php.org/
 	 */
 
-	define("MB", "1048576");
-
 	class HTTP {
+		const MB = 1048576;
+
 		protected $host = null;
 		protected $port = null;
 		protected $headers = array();
@@ -99,7 +99,7 @@
 			$this->add_header("Accept-Charset", "ISO-8859-1,utf-8");
 			$this->add_header("Accept-Language", "en-US");
 			$this->add_header("Connection", "close");
-			$this->add_header("User-Agent", "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; WOW64; Trident/6.0)");
+			$this->add_header("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:47.0) Gecko/20100101 Firefox/47.0");
 			if (function_exists("gzdecode")) {
 				$this->add_header("Accept-Encoding", "gzip");
 			}
@@ -197,7 +197,7 @@
 		 * ERROR:  -
 		 */
 		public function add_cookie($key, $value) {
-			if ($key != "") {
+			if (trim($key) != "") {
 				$this->cookies[$key] = $value;
 			}
 		}
@@ -316,7 +316,7 @@
 			while (($line = fgets($sock)) !== false) {
 				$result .= $line;
 
-				if (strlen($result) > 2 * MB) {
+				if (strlen($result) > 2 * self::MB) {
 					return $result;
 				}
 			}
@@ -341,6 +341,7 @@
 			$result = array(
 				"status"  => (int)$status,
 				"headers" => array(),
+				"cookies" => array(),
 				"body"    => $body);
 
 			/* Parse response headers
@@ -349,13 +350,18 @@
 			for ($i = 1; $i < count($header); $i++) {
 				$parts = explode(":", $header[$i], 2);
 				list($key, $value) = array_map("trim", $parts);
-				$result["headers"][$key] = $value;
+
+				if ($key != "Set-Cookie") {
+					$result["headers"][$key] = $value;
+				}
 
 				if ($key == "Set-Cookie") {
 					/* Cookie
 					 */
-					list($value) = explode(";", $value);
-					list($cookie_key, $cookie_value) = explode("=", $value);
+					list($cookie_key, $cookie_value) = explode("=", $value, 2);
+					$result["cookies"][$cookie_key] = $cookie_value;
+
+					list($cookie_value) = explode(";", $cookie_value, 2);
 					$this->add_cookie($cookie_key, $cookie_value);
 				} else if ($key == "Content-Encoding") {
 					/* Content encoding

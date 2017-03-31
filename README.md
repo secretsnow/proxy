@@ -7,30 +7,29 @@ Installation
 - Copy all files to a suitable location.
 - Make the webserver rewrite *all* requests to index.php.
 - Make this proxy available via both HTTP and HTTPS.
-- Create a wildcard SSL certificate for \*.proxy.tld.
-- Replace the first part of the hostname with a wildcard and use the result
-  as an alias in your webserver configuration. For example, if you choose
-  www.proxy.tld as the hostname for this proxy, use \*.proxy.tld as an alias
-  for it.
-  
-The hostname proxy.tld will work with for HTTP, but will cause an SSL error
-when using it with HTTPS because of the wildcard certificate.
+- Use an SSL certificate that is valid for \*.proxy.tld and proxy.tld.
+
+You can use the script certificate/generate to create a self-signed certificate.
 
 Hiawatha webserver example configuration
 ----------------------------------------
+In the following configuration, replace proxy.domain.tld with your own hostname.
+
 VirtualHost {
-	Hostname = www.proxy.tld, *.proxy.tld
+	Hostname = proxy.domain.tld, *.proxy.domain.tld
 	WebsiteRoot = /var/www/proxy
 	StartFile = index.php
 	AccessLogfile = /var/log/hiawatha/proxy-access.log
 	ErrorLogfile = /var/log/hiawatha/proxy-error.log
 	UseFastCGI = PHP5
-	UseToolkit = catch_all
+	UseToolkit = proxy
 	TimeForCGI = 60
 	TLScertFile = tls/proxy.pem
 }
 
 UrlToolkit {
-	ToolkitID = catch_all
-	Match .* Rewrite /index.php
+	ToolkitID = proxy
+	Header Host !^proxy.domain.tld$ Skip 1
+	RequestURI isfile Return
+	Match [^?]*(\?.*)? Rewrite /index.php$1
 }

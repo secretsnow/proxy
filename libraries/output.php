@@ -2,10 +2,10 @@
 	class output {
 		private $config = array();
 		private $proxy_hostname = null;
-		private $proxy_basename = null;
 		private $working_dir = null;
 		private $output = "";
 		private $enabled = true;
+		private $mimetypes = array();
 
 		/* Constructor
 		 *
@@ -19,10 +19,16 @@
 
 			$this->show_file("header", array(
 				"PROXY_HOSTNAME"  => $this->config["proxy_hostname"],
-				"PROXY_BASENAME"  => $this->config["proxy_basename"],
 				"PROTOCOL"        => $_SERVER["HTTPS"] == "on" ? "https" : "http",
+				"PROTOCOL_LINK"   => $_SERVER["HTTPS"] == "on" ? "http" : "https",
 				"SESSION_KEY"     => SESSION_KEY,
 				"DOT_REPLACEMENT" => DOT_REPLACEMENT));
+
+			$this->mimetypes = array(
+				"css" => "text/css",
+				"ico" => "image/x-icon",
+				"png" => "image/png",
+				"txt" => "text/plain");
 		}
 
 		/* Destructor
@@ -60,19 +66,38 @@
 
 		/* Show local file
 		 */
-		public function show_local_file($filename, $local_files) {
-			header("Content-Type: ".$local_files[$filename]);
+		public function show_local_file($filename) {
+			list($head, $extension) = explode(".", $filename, 2);
+
+			if (preg_match('/[^a-z\/]/', $head) === 1) {
+				return false;
+			}
+
+			if (($extension = $this->mimetypes[$extension]) === null) {
+				return false;
+			}
+
+			if (file_exists($filename) == false) {
+				return false;
+			}
+
+			header("Content-Type: ".$extension);
 			header("Content-Length: ".filesize($filename));
 			header("Expires: ".date("D, d M Y H:i:s", time() + (14 * 86400))." GMT");
+			header("Cache-Control: private");
+			header_remove("Pragma");
 			readfile($filename);
 
 			$this->enabled = false;
+
+			return true;
 		}
 
 		/* Login form
 		 */
 		public function show_login_form($message = null) {
-			header("Status: 407");
+			$code = $this->config["proxy_hostname"] == $_SERVER["HTTP_HOST"] ? 401 : 407;
+			header("Status: ".$code);
 
 			$data = array(
 				"PROTOCOL" => ($_SERVER["HTTPS"] == "on") ? "https" : "http",
@@ -96,7 +121,6 @@
 
 			$this->show_file("url_form", array(
 				"PROTOCOL"       => $_SERVER["HTTPS"] == "on" ? "https" : "http",
-				"PROTOCOL_LINK"  => $_SERVER["HTTPS"] == "on" ? "http" : "https",
 				"PROXY_HOSTNAME" => $this->config["proxy_hostname"],
 				"URL"            => $url));
 			if ($message !== null) {
@@ -113,7 +137,7 @@
 						$text = $host;
 					}
 					$host = str_replace(".", DOT_REPLACEMENT, $host);
-					$link = sprintf("%s//%s.%s/%s", $prot, $host, $this->config["proxy_basename"], $path);
+					$link = sprintf("%s//%s.%s/%s", $prot, $host, $this->config["proxy_hostname"], $path);
 
 					array_push($links, sprintf("<li><a href=\"%s\">%s</a></li>\n", $link, $text));
 				}
@@ -136,7 +160,6 @@
 				405 => "Unsupported request method",
 				500 => "Internal error at remote server");
 
-
 			if (($message = $messages[$code]) == null) {
 				$message = "Unknown error";
 			} else {
@@ -151,6 +174,10 @@
 		/* Show proxy page
 		 */
 		public function show_page($page) {
+			if (preg_match('/[^a-z]/', $page) === 1) {
+				return false;
+			}
+
 			$php_file = "views/".$page.".php";
 			if (file_exists($php_file) == false) {
 				return false;
@@ -162,6 +189,8 @@
 
 			$this->output .= $output;
 			$this->show_file("menu");
+
+			return true;
 		}
 	}
 ?>

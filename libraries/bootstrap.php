@@ -55,6 +55,37 @@
 			return false;
 		}
 
+
+		/* Check if a login is required
+		 *
+		 * INPUT:  -
+		 * OUTPUT: boolean login required
+		 * ERROR:  -
+		 */
+		private function login_required() {
+			if (count($this->config["access_codes"]) == 0) {
+				return false;
+			}
+
+			if ($this->hostname_in_list($this->hostname, $this->config["no_auth_websites"])) {
+				return false;
+			} else if (in_array($_SERVER["REMOTE_ADDR"], $this->config["no_auth_clients"])) {
+				return false;
+			}
+
+			if (in_array($_SESSION["access_code"], $this->config["access_codes"])) {
+				return false;
+			}
+
+			if (in_array($_POST["access_code"], $this->config["access_codes"])) {
+				$_SESSION["access_code"] = $_POST["access_code"];
+				$_SERVER["REQUEST_METHOD"] = "GET";
+				return false;
+			}
+
+			return true;
+		}
+
 		/* Execute bootstrap procedure
 		 *
 		 * INPUT:  -
@@ -62,6 +93,8 @@
 		 * ERROR:  -
 		 */
 		public function execute() {
+			$http_host = $_SERVER["HTTP_HOST"];
+
 			/* Block searchbots
 			 */
 			$search_bots = array("Googlebot", "bingbot");
@@ -73,25 +106,27 @@
 
 			/* Local files
 			 */
-			if (in_array(ltrim($_SERVER["REQUEST_URI"], "/"), array_keys($this->config["local_files"]))) {
-				return LOCAL_FILE;
+			if ($http_host == $this->config["proxy_hostname"]) {
+				list(, $directory) = explode("/", $_SERVER["REQUEST_URI"], 3);
+				if (($_SERVER["REQUEST_URI"] == "/robots.txt") || ($directory == "resources")) {
+					return LOCAL_FILE;
+				}
 			}
 
 			/* User input
 			 */
-			$http_host = $_SERVER["HTTP_HOST"];
 			$http_host_len = strlen($http_host);
-			$basename_len = strlen($this->config["proxy_basename"]);
+			$proxyname_len = strlen($this->config["proxy_hostname"]);
 
-			if ($http_host_len < $basename_len) {
+			if ($http_host_len < $proxyname_len) {
 				return INTERNAL_ERROR;
 			}
 
-			if (($hostname_len = $http_host_len - $basename_len - 1) == -1) {
-				if ($http_host != $this->config["proxy_basename"]) {
+			if (($hostname_len = $http_host_len - $proxyname_len - 1) == -1) {
+				if ($http_host != $this->config["proxy_hostname"]) {
 					return INTERNAL_ERROR;
 				}
-			} else if (substr($http_host, $hostname_len) != ".".$this->config["proxy_basename"]) {
+			} else if (substr($http_host, $hostname_len) != ".".$this->config["proxy_hostname"]) {
 				return INTERNAL_ERROR;
 			}
 
@@ -100,21 +135,11 @@
 
 			/* Authentication
 			 */
-			if (count($this->config["access_codes"]) > 0) {
-				if ($this->hostname_in_list($this->hostname, $this->config["no_auth_websites"]) == false) {
-					if (in_array($_SESSION["access_code"], $this->config["access_codes"])) {
-						// User already logged in
-						$_SERVER["REQUEST_METHOD"] = "GET";
-					} else if (in_array($_POST["access_code"], $this->config["access_codes"])) {
-						$_SESSION["access_code"] = $_POST["access_code"];
-						$_SERVER["REQUEST_METHOD"] = "GET";
-					} else if (in_array($_SERVER["REMOTE_ADDR"], $this->config["no_auth_clients"]) == false) {
-						return LOGIN_REQUIRED;
-					}
-				}
+			if ($this->login_required()) {
+				return LOGIN_REQUIRED;
 			}
 
-			if (($http_host == $this->config["proxy_basename"]) || ($hostname == $this->config["proxy_prefix"])) {
+			if (($http_host == $this->config["proxy_hostname"]) || ($hostname == $this->config["proxy_prefix"])) {
 				return NO_USER_INPUT;
 			}
 

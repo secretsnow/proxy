@@ -1,5 +1,10 @@
 <h2>Login</h2>
 <form action="{PROTOCOL}://{HOSTNAME}{URI}" method="post">
-<p>Access code: <input type="password" name="access_code" autofocus="autofocus" class="text" />
-<input type="submit" value="Login" /></p>
+<div class="input-group">
+<span class="input-group-addon">Access code:</span>
+<input type="password" name="access_code" autofocus="autofocus" class="form-control" />
+<span class="input-group-btn">
+	<input type="submit" value="Login" class="btn btn-primary" />
+</span>
+</div>
 </form>

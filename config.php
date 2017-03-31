@@ -28,15 +28,15 @@
 	/* Quick links
 	 *
 	 * An array with URL's for the Quick Links sections
-	 * Example: $quick_links = array("The Pirate Bay" => "http://thepiratebay.vg/");
+	 * Format: array("The Pirate Bay" => "https://thepiratebay.org/", ...)
 	 */
 	"quick_links" => array(
-		"The Pirate Bay" => "http://thepiratebay.vg/"),
+		"The Pirate Bay" => "https://thepiratebay.org/"),
 
 	/* Forwarding proxy
 	 *
 	 * Use this other proxy (Tor) to handle all requests.
-	 # Example: "forwarding_proxy" => "socks://localhost:3128"
+	 # Format: "socks://localhost:3128"
 	 */
 	"forwarding_proxy" => null,
 
@@ -54,7 +54,7 @@
 	 * Define which websites can or cannot be visited via this proxy.
 	 */
 	"whitelist" => array(),
-	"blacklist" => array()
+	"blacklist" => array(),
 
 	);
 ?>

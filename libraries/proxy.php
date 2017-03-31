@@ -10,11 +10,11 @@
 		private $ignore_cookies = array();
 		private $headers_to_server = array("Accept", "Accept-Charset",
 			"Accept-Language", "Referer", "User-Agent", "X-Requested-With",
-			"Authorization");
+			"Authorization", "Cookie");
 		private $headers_to_client = array("Accept-Ranges", "Cache-Control",
 			"Content-Type", "Content-Range", "DNT", "ETag", "Expires",
-			"Last-Modified", "Location", "Pragma", "Refresh", "Set-Cookie",
-			"WWW-Authenticate");
+			"Last-Modified", "Location", "Pragma", "Refresh",
+			"WWW-Authenticate", "Set-Cookie");
 
 		/* Constructor
 		 *
@@ -29,6 +29,10 @@
 		}
 
 		/* Forward HTTP header from browser to server
+		 *
+		 * INPUT:  string header
+		 * OUTPUT: -
+		 * ERROR:  -
 		 */
 		private function header_to_server($header) {
 			$envkey = "HTTP_".str_replace("-", "_", strtoupper($header));
@@ -45,23 +49,27 @@
 		}
 
 		/* Rewrite URL
+		 *
+		 * INPUT:  string url
+		 * OUTPUT: string url
+		 * ERROR:  -
 		 */
 		private function rewrite_url($url) {
 			$url = trim($url, " '\n");
 			$scheme = ($_SERVER["HTTPS"] == "on") ? "https" : "http";
 
-			if (substr($url, 0, 2) == "//") {
+			if ((substr($url, 0, 2) == "//") && (strlen($url) > 2)) {
 				list($host, $path) = explode("/", substr($url, 2), 2);
 				$host = str_replace(".", DOT_REPLACEMENT, $host);
-				$new_url = sprintf("//%s.%s/%s", $host, $this->config["proxy_basename"], $path);
+				$new_url = sprintf("//%s.%s/%s", $host, $this->config["proxy_hostname"], $path);
 			} else if (substr($url, 0, 7) == "http://") {
 				list($host, $path) = explode("/", substr($url, 7), 2);
 				$host = str_replace(".", DOT_REPLACEMENT, $host);
-				$new_url = sprintf("http://%s.%s/%s", $host, $this->config["proxy_basename"], $path);
+				$new_url = sprintf("http://%s.%s/%s", $host, $this->config["proxy_hostname"], $path);
 			} else if (substr($url, 0, 8) == "https://") {
 				list($host, $path) = explode("/", substr($url, 8), 2);
 				$host = str_replace(".", DOT_REPLACEMENT, $host);
-				$new_url = sprintf("https://%s.%s/%s", $host, $this->config["proxy_basename"], $path);
+				$new_url = sprintf("https://%s.%s/%s", $host, $this->config["proxy_hostname"], $path);
 			} else {
 				$new_url = $url;
 			}
@@ -70,6 +78,10 @@
 		}
 
 		/* Fix property value
+		 *
+		 * INPUT:  string data, string delimeter begin, string delimeter end
+		 * OUTPUT: -
+		 * ERROR:  -
 		 */
 		private function rewrite_to_proxy($data, $delim_begin, $delim_end) {
 			$offset = 0;
@@ -91,6 +103,23 @@
 			}
 
 			return $data;
+		}
+
+		private function rewrite_cookie_domain($value) {
+			$parts = explode("; ", $value);
+
+			foreach ($parts as $i => $part) {
+				list($key, $value) = explode("=", $part);
+				if ($key != "domain") {
+					continue;
+				}
+
+				$value = preg_replace("/(.)\.(.)/", "$1".DOT_REPLACEMENT."$2", $value).".".$this->config["proxy_hostname"];
+
+				$parts[$i] = trim($key)."=".$value;
+			}
+
+			return implode("; ", $parts);
 		}
 
 		/* Ignore cookies for host
@@ -116,10 +145,10 @@
 		public function forward_request($path) {
 			/* Proxy self?
 			 */
-			$basename_len = strlen($this->config["proxy_basename"]);
+			$proxyname_len = strlen($this->config["proxy_hostname"]);
 			$host_len = strlen($this->host);
-			if ($host_len >= $basename_len) {
-				if (substr($this->host, $host_len - $basename_len) == $this->config["proxy_basename"]) {
+			if ($host_len >= $proxyname_len) {
+				if (substr($this->host, $host_len - $proxyname_len) == $this->config["proxy_hostname"]) {
 					return LOOPBACK;
 				}
 			}
@@ -129,6 +158,7 @@
 			foreach ($this->headers_to_server as $header) {
 				$this->header_to_server($header);
 			}
+			#$this->add_header("X-Forwarded-For", $_SERVER["REMOTE_ADDR"]);
 
 			/* POST data
 			 */
@@ -161,7 +191,7 @@
 
 			/* Abort on error
 			 */
-			if ($result == false) {
+			if ($result === false) {
 				return CONNECTION_ERROR;
 			} else if ($result["status"] >= 500) {
 				return $result["status"];
@@ -212,12 +242,14 @@
 
 			foreach ($result["headers"] as $key => $value) {
 				if (in_array($key, $this->headers_to_client) || (substr($key, 2) == "X-")) {
-					if ($key == "Set-Cookie") {
-						if (in_array($this->host, $this->ignore_cookies)) {	
-							continue;
-						}
-					}
 					header($key.": ".$value);
+				}
+			}
+
+			if (in_array($this->host, $this->ignore_cookies) == false) {
+				foreach ($result["cookies"] as $key => $value) {
+					$value = $this->rewrite_cookie_domain($value);
+					header(sprintf("Set-Cookie: %s=%s", $key, $value), false);
 				}
 			}
 

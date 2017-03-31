@@ -1,5 +1,5 @@
 <?php
-	define("VERSION", "3.0");
+	define("VERSION", "3.1");
 
 	define("SESSION_KEY", "proxy_session_key");
 
@@ -13,15 +13,6 @@
 
 	define("DOT_REPLACEMENT", "_");
 
-	$proxy_pages = array("disclaimer");
-
-	list($_CONFIG["proxy_prefix"], $_CONFIG["proxy_basename"]) = explode(".", $_CONFIG["proxy_hostname"], 2);
-
-	$_CONFIG["local_files"] = array(
-		"tunnel.png"  => "image/png",
-		"favicon.ico" => "image/x-icon",
-		"robots.txt"  => "text/plain");
-
 	/* Class autoloader
 	 */
 	function __autoload($class_name) {
@@ -29,6 +20,24 @@
 		if (file_exists($file)) {
 			require($file);
 		}
+	}
+
+	/* Log debug information
+	 */
+	function debug_log($str) {
+		if (($fp = fopen("debug.log", "a")) === false) {
+			return false;
+		}
+
+		if (func_num_args() > 1) {
+			$args = func_get_args();
+			array_shift($args);
+			$str = vsprintf($str, $args);
+		}
+
+		fprintf($fp, "%s|%s|%s", date("D d M Y H:i:s"), $_SERVER["REMOTE_ADDR"], $str);
+
+		fclose($fp);
 	}
 
 	/* Function gzdecode()

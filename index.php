@@ -9,7 +9,7 @@
 	}
 
 	session_name(SESSION_KEY);
-	session_set_cookie_params(0, "/", ".".$_CONFIG["proxy_basename"]);
+	session_set_cookie_params(0, "/", ".".$_CONFIG["proxy_hostname"]);
 	session_start();
 	unset($_COOKIE[SESSION_KEY]);
 
@@ -73,10 +73,12 @@
 			break;
 		case NO_USER_INPUT:
 			if ($page == "") {
-				$output->show_url_form();
-			} else if (in_array($page, $proxy_pages)) {
-				$output->show_page($page);
-			} else {
+				if (isset($_COOKIE["url"])) {
+					$url = $_COOKIE["url"];
+					setcookie("url");
+				}
+				$output->show_url_form($url);
+			} else if ($output->show_page($page) == false) {
 				$output->http_error(404);
 			}
 			break;
@@ -97,7 +99,9 @@
 			$status = 508;
 			break;
 		case LOCAL_FILE:
-			$output->show_local_file($page, $_CONFIG["local_files"]);
+			if ($output->show_local_file($page) == false) {
+				$output->http_error(404);
+			}
 			break;
 		case 403:
 			$output->http_error($result);

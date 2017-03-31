@@ -1,5 +1,12 @@
 <h2>Website URL</h2>
 <form action="javascript:proxy_url()" accept-charset="utf-8">
-<p><a href="{PROTOCOL_LINK}://{PROXY_HOSTNAME}">{PROTOCOL}</a>://<input type="text" id="url" value="{URL}" autofocus="autofocus" class="text" />
-<input type="submit" value="Proxy URL" class="button" /></p>
+<div class="input-group">
+<span class="input-group-btn">
+	<input type="button" value="{PROTOCOL}://" class="btn btn-default" onClick="javascript:switch_protocol()" />
+</span>
+<input type="text" id="url" value="{URL}" autofocus="autofocus" class="form-control" onfocus="javascript:cursor_to_end(this)" />
+<span class="input-group-btn">
+	<input type="submit" value="Proxy URL" class="btn btn-primary" />
+</span>
+</div>
 </form>

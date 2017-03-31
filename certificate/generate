@@ -1,0 +1,24 @@
+#!/bin/bash
+
+if [ "$1" == "" ]
+then
+	echo "Usage: ${0} <hostname>"
+	exit
+fi
+
+cd `dirname $0`
+
+sed "s/{HOSTNAME}/${1}/" openssl.conf > openssl-${1}.conf
+
+openssl genrsa -out ${1}.key
+echo | openssl req -new -x509 -key ${1}.key -out ${1}.crt -config openssl-${1}.conf
+
+mv ${1}.key ${1}.pem
+echo "" >> ${1}.pem
+openssl x509 -in ${1}.crt >> ${1}.pem
+echo "" >> ${1}.pem
+
+rm ${1}.crt
+rm openssl-${1}.conf
+
+openssl x509 -in ${1}.pem -noout -text

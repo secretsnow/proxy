@@ -3,132 +3,25 @@
 
 <head>
 <title>WebProxy</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <base href="{PROTOCOL}://{PROXY_HOSTNAME}/" />
 <meta name="author" content="Hugo Leisink" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<link rel="apple-touch-icon" href="/tunnel.png" />
-<style type="text/css">
-	/* Layout
-	 */
-	* {
-		margin:0;
-		padding:0;
-	}
-	body {
-		background-color:#0b1933;
-		font-family:sans-serif;
-		font-size:12px;
-	}
-	div.wrapper {
-		position:relative;
-		width:650px;
-		margin:70px auto 20px auto;
-		background-color:#ffffff;
-		padding:0px 30px 20px 30px;
-		border-top:3px solid #ce6c1c;
-		border-bottom-left-radius:10px;
-		border-bottom-right-radius:10px;
-	}
-	img.logo {
-		position:absolute;
-		right:20px;
-		top:-65px;
-		width:100px;
-	}
-
-	/* Content
-	 */
-	div.notice {
-		padding:8px 14px;
-		background-color:#c0ffc0;
-		border:1px solid #60ff60;
-		border-radius:5px;
-		margin-top:20px;
-		width:400px;
-	}
-	h1 {
-		color:#f0f0f0;
-		position:absolute;
-		top:-45px;
-		left:-5px;
-		font-size:28px;
-		font-weight:normal;
-		font-style:italic;
-	}
-	h2 {
-		color:#3b578b;
-		font-size:18px;
-		margin:40px 0 10px 0;
-		border-bottom:1px solid #808080;
-	}
-	p {
-		line-height:180%;
-		margin-bottom:15px;
-	}
-	a {
-		color:#ed7b0a;
-	}
-	/* Forms
-	 */
-	form a {
-		text-decoration:none;
-		color:inherit;
-	}
-	input.text {
-		margin:0 3px;
-		width:500px;
-		border-radius:3px;
-		border:1px solid #404040;
-		background-color:#ffe0c0;
-	}
-	input.button {
-		padding:0 10px;
-	}
-	/* Quick links
-	 */
-	ul.links {
-		list-style-position:inside;
-		margin-left:10px;
-	}
-	ul.links li {
-		width:200px;
-		float:left;
-	}
-	ul.links li:last-child {
-		float:none;
-	}
-	/* Settings
-	 */
-	table.settings {
-		margin-bottom:15px;
-	}
-	table.settings td:first-child {
-		width:150px;
-	}
-	/* Footer
-	 */
-	p.version {
-		height:0;
-		margin:0;
-		color:#a0a0a0;
-		text-align:right;
-		position:absolute;
-		bottom:30px;
-		right:30px;
-	}
-	ul.footer {
-		margin-top:30px;
-		border-top:1px solid #a0a0a0;
-		padding-top:1px;
-	}
-	ul.footer li {
-		display:inline;
-		border-left:1px solid #a0a0a0;
-		padding:2px 15px;
-	}
-</style>
+<link rel="shortcut icon" href="/resources/favicon.ico" />
+<link rel="apple-touch-icon" href="/resources/tunnel.png" />
+<link rel="stylesheet" type="text/css" href="/resources/bootstrap.css">
+<link rel="stylesheet" type="text/css" href="/resources/stylesheet.css">
 <script type="text/javascript">
 <!--
+	function switch_protocol() {
+		document.cookie = 'url=' + document.getElementById('url').value;
+		document.location = '{PROTOCOL_LINK}://{PROXY_HOSTNAME}';
+	}
+
+	function cursor_to_end(input) {
+		input.selectionStart = input.selectionEnd = input.value.length;
+	}
+
 	function explode(delimiter, string, limit) {
 		if ((arguments.length < 2) || (typeof delimiter == 'undefined') || (typeof string == 'undefined')) {
 			return null;
@@ -182,13 +75,13 @@
 
 		hostname = hostname.replace(/\./g, "{DOT_REPLACEMENT}");
 
-		document.location = "{PROTOCOL}://" + hostname + ".{PROXY_BASENAME}/" + uri;
+		document.location = "{PROTOCOL}://" + hostname + ".{PROXY_HOSTNAME}/" + uri;
 	}
 //-->
 </script>
 </head>
 
 <body>
-<div class="wrapper">
-<img src="/tunnel.png" alt="logo" class="logo" />
+<div class="container">
+<img src="/resources/tunnel.png" alt="logo" class="logo" />
 <h1>There is a site at the end of the tunnel.</h1>

@@ -15,7 +15,7 @@
 
 	/* Class autoloader
 	 */
-	function __autoload($class_name) {
+	function proxy_autoload($class_name) {
 		$file = "libraries/".strtolower($class_name).".php";
 		if (file_exists($file)) {
 			require($file);
@@ -60,5 +60,9 @@
 	 */
 	function error_handler($error) {
 	}
+
+	/* Employ functions
+	 */
+	spl_autoload_register("proxy_autoload");
 	set_error_handler("error_handler", E_ALL);
 ?>

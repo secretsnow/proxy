@@ -5,7 +5,7 @@ Proxy
 =====
 This is a webproxy script written in PHP by Hugo Leisink <hugo@leisink.net>.
 
-License Presumably [GNU General Public License, version 2](https://www.hiawatha-webserver.org/license)
+License Presumably [GNU General Public License, version 2.](https://www.hiawatha-webserver.org/license)
 
 Installation
 ------------

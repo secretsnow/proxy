@@ -1,22 +1,22 @@
 
 ![tunnel.png](https://raw.githubusercontent.com/secretsnow/proxy/78d35ea270006b1f3587867ddf542b0f5c66c960/resources/tunnel.png).
 
-Proxy
+WebProxy
 =====
-This is a webproxy script written in PHP by Hugo Leisink <hugo@leisink.net>.
+This is a WebProxy script written in PHP by Hugo Leisink <hugo@leisink.net>.
 
-License Presumably [GNU General Public License, version 2.](https://www.hiawatha-webserver.org/license)
+Copyright © by Hugo Leisink. All rights reserved.
 
 Installation
 ------------
 - Copy all files to a suitable location.
-- Make the webserver rewrite *all* requests to index.php.
-- Make this proxy available via both HTTP and HTTPS.
+- Make the WebServer rewrite *all* requests to index.php.
+- Make this Proxy available via both HTTP and HTTPS.
 - Use an SSL certificate that is valid for \*.proxy.tld and proxy.tld.
 
 You can use the script certificate/generate to create a self-signed certificate.
 
-Hiawatha webserver example configuration
+Hiawatha WebServer Example Configuration
 ----------------------------------------
 In the following configuration, replace proxy.domain.tld with your own hostname.
 
